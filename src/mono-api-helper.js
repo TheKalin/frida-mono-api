@@ -41,6 +41,16 @@ const MonoApiHelper = {
     }
     return methods
   },
+  ClassGetProperties: mono_class => {
+    const properties = []
+    const iter = Memory.alloc(Process.pointerSize)
+    let property
+
+    while(!(property = MonoApi.mono_class_get_properties(mono_class, iter)).isNull()) {
+      properties.push(property)
+    }
+    return properties
+  },
   ClassGetName: mono_class => {
     return Memory.readUtf8String(MonoApi.mono_class_get_name(mono_class))
   },
@@ -73,6 +83,7 @@ const MonoApiHelper = {
     if (!exception.isNull()) throw new Error('Unknown exception happened.');
     return result
   },
+  PropertyGetName: mono_property => Memory.readUtf8String(MonoApi.mono_property_get_name(mono_property)),
   SignatureGetParamCount: MonoApi.mono_signature_get_param_count,
   SignatureGetParams: signature => {
     let params = []
@@ -92,7 +103,8 @@ const MonoApiHelper = {
   TypeGetType: MonoApi.mono_type_get_type,
   TypeGetUnderlyingType: MonoApi.mono_type_get_underlying_type,
   ValueBox: (mono_class, valuePtr, domain = rootDomain) => MonoApi.mono_value_box(domain, mono_class, valuePtr),
-  Intercept: hookManagedMethod
+  Intercept: hookManagedMethod,
+
 }
 
 function hookManagedMethod(klass, methodName, callbacks) {
